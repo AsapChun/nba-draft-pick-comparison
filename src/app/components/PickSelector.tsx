@@ -1,128 +1,182 @@
 'use client';
 
 import { useState } from 'react';
-import { DraftPick } from '../../lib/types';
+import { OwnedDraftPick } from '../../lib/types';
 
 interface PickSelectorProps {
   teamId: string;
-  availablePicks: DraftPick[];
+  availablePicks: OwnedDraftPick[];
   title: string;
-  onPicksChange: (picks: DraftPick[]) => void;
+  onPicksChange: (picks: OwnedDraftPick[]) => void;
 }
 
 export default function PickSelector({ teamId, availablePicks, title, onPicksChange }: PickSelectorProps) {
-  const [selectedPicks, setSelectedPicks] = useState<DraftPick[]>([]);
+  const [selectedPickIds, setSelectedPickIds] = useState<string[]>([]);
 
-  const handlePickToggle = (pick: DraftPick) => {
-    const isSelected = selectedPicks.some(p => p.id === pick.id);
-    let newSelectedPicks;
+  const handlePickToggle = (pick: OwnedDraftPick) => {
+    const isSelected = selectedPickIds.includes(pick.id);
+    let newSelectedIds: string[];
     
     if (isSelected) {
-      newSelectedPicks = selectedPicks.filter(p => p.id !== pick.id);
+      newSelectedIds = selectedPickIds.filter(id => id !== pick.id);
     } else {
-      newSelectedPicks = [...selectedPicks, pick];
+      newSelectedIds = [...selectedPickIds, pick.id];
     }
     
-    setSelectedPicks(newSelectedPicks);
-    onPicksChange(newSelectedPicks);
+    setSelectedPickIds(newSelectedIds);
+    const selectedPicks = availablePicks.filter(p => newSelectedIds.includes(p.id));
+    onPicksChange(selectedPicks);
   };
 
-  const groupPicksByYear = (picks: DraftPick[]) => {
-    return picks.reduce((acc, pick) => {
-      if (!acc[pick.year]) {
-        acc[pick.year] = [];
+  const getPickTypeColor = (type: string) => {
+    switch (type) {
+      case 'own': return 'bg-green-600';
+      case 'acquired': return 'bg-blue-600';
+      case 'swap': return 'bg-purple-600';
+      case 'conditional': return 'bg-yellow-600';
+      default: return 'bg-gray-600';
+    }
+  };
+
+  const getPickTypeLabel = (type: string) => {
+    switch (type) {
+      case 'own': return 'Own';
+      case 'acquired': return 'Acquired';
+      case 'swap': return 'Swap';
+      case 'conditional': return 'Conditional';
+      default: return 'Unknown';
+    }
+  };
+
+  const formatProtections = (pick: OwnedDraftPick) => {
+    if (!pick.protections || pick.protections.length === 0) return '';
+    
+    return pick.protections.map(protection => {
+      if (protection.type === 'top') {
+        return `Top ${protection.value}`;
+      } else if (protection.type === 'range') {
+        return Array.isArray(protection.value) 
+          ? `${protection.value[0]}-${protection.value[1]}`
+          : `${protection.value}`;
+      } else if (protection.type === 'lottery') {
+        return 'Lottery';
       }
-      acc[pick.year].push(pick);
-      return acc;
-    }, {} as Record<number, DraftPick[]>);
+      return '';
+    }).join(', ');
   };
 
-  const groupedPicks = groupPicksByYear(availablePicks);
+  // Group picks by year
+  const picksByYear = availablePicks.reduce((acc, pick) => {
+    if (!acc[pick.year]) {
+      acc[pick.year] = [];
+    }
+    acc[pick.year].push(pick);
+    return acc;
+  }, {} as Record<number, OwnedDraftPick[]>);
+
+  const sortedYears = Object.keys(picksByYear).map(Number).sort();
+
+  if (availablePicks.length === 0) {
+    return (
+      <div className="bg-gray-700/30 rounded-lg p-4 border border-gray-600">
+        <h4 className="text-sm font-medium text-gray-300 mb-2">{title}</h4>
+        <p className="text-sm text-gray-500">No draft picks available</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h4 className="font-semibold text-gray-100 text-lg">{title}</h4>
-        {selectedPicks.length > 0 && (
-          <span className="text-sm text-blue-400 font-medium">
-            {selectedPicks.length} selected
-          </span>
-        )}
+    <div className="bg-gray-700/30 rounded-lg p-4 border border-gray-600">
+      <h4 className="text-sm font-medium text-gray-300 mb-4">{title}</h4>
+      
+      <div className="space-y-4 max-h-96 overflow-y-auto">
+        {sortedYears.map(year => (
+          <div key={year} className="space-y-2">
+            <h5 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+              {year} Draft
+            </h5>
+            
+            <div className="space-y-2">
+              {picksByYear[year]
+                .sort((a, b) => a.round - b.round)
+                .map(pick => (
+                  <div
+                    key={pick.id}
+                    onClick={() => handlePickToggle(pick)}
+                    className={`
+                      cursor-pointer rounded-lg p-3 border transition-all duration-200
+                      ${selectedPickIds.includes(pick.id)
+                        ? 'border-blue-500 bg-blue-500/20 ring-2 ring-blue-500/30'
+                        : 'border-gray-600 bg-gray-800/50 hover:bg-gray-700/50 hover:border-gray-500'
+                      }
+                    `}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <span className="text-sm font-medium text-white">
+                            {year} Round {pick.round}
+                          </span>
+                          <span className={`px-2 py-0.5 text-xs font-medium text-white rounded ${getPickTypeColor(pick.type)}`}>
+                            {getPickTypeLabel(pick.type)}
+                          </span>
+                          {pick.originalOwner !== teamId && (
+                            <span className="text-xs text-gray-400">
+                              (from {pick.originalOwner})
+                            </span>
+                          )}
+                        </div>
+                        
+                        {formatProtections(pick) && (
+                          <div className="text-xs text-orange-400 mb-1">
+                            Protected: {formatProtections(pick)}
+                          </div>
+                        )}
+                        
+                        <div className="text-xs text-gray-400 line-clamp-2">
+                          {pick.description}
+                        </div>
+                        
+                        {pick.conditionalRules && (
+                          <div className="text-xs text-yellow-400 mt-1">
+                            Conditional: {pick.conditionalRules.condition}
+                          </div>
+                        )}
+                        
+                        {pick.swapConditions && (
+                          <div className="text-xs text-purple-400 mt-1">
+                            Swap: {pick.swapConditions.description}
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="ml-3 flex-shrink-0">
+                        <div className={`
+                          w-5 h-5 rounded border-2 flex items-center justify-center
+                          ${selectedPickIds.includes(pick.id)
+                            ? 'border-blue-500 bg-blue-500'
+                            : 'border-gray-400'
+                          }
+                        `}>
+                          {selectedPickIds.includes(pick.id) && (
+                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        ))}
       </div>
       
-      <div className="relative">
-        <div className="border-2 border-gray-600 rounded-lg bg-gray-750 shadow-inner">
-          <div className="max-h-64 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-700">
-            {Object.entries(groupedPicks).map(([year, picks]) => (
-              <div key={year} className="space-y-3">
-                <div className="pb-2 border-b border-gray-600">
-                  <h5 className="text-sm font-semibold text-gray-300 uppercase tracking-wide">
-                    {year} Draft
-                  </h5>
-                </div>
-                <div className="space-y-2 pl-2">
-                  {picks.map(pick => {
-                    const isSelected = selectedPicks.some(p => p.id === pick.id);
-                    return (
-                      <label 
-                        key={pick.id}
-                        className={`flex items-center space-x-3 p-3 rounded-md cursor-pointer transition-all duration-200 border ${
-                          isSelected 
-                            ? 'bg-blue-600 border-blue-500 text-white shadow-md transform scale-[1.02]' 
-                            : 'bg-gray-700 border-gray-600 hover:bg-gray-650 hover:border-gray-500 text-gray-200 hover:shadow-sm'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => handlePickToggle(pick)}
-                          className="rounded border-gray-400 text-blue-600 focus:ring-blue-500 focus:ring-2"
-                        />
-                        <span className="text-sm font-medium">
-                          {pick.year} {pick.round === 1 ? '1st' : '2nd'} Round Pick
-                        </span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-            
-            {availablePicks.length === 0 && (
-              <div className="text-center py-8 text-gray-400">
-                <p className="text-sm">No draft picks available</p>
-              </div>
-            )}
-          </div>
-          
-          {availablePicks.length > 6 && (
-            <div className="absolute bottom-2 right-2 text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded">
-              Scroll for more
-            </div>
-          )}
-        </div>
-      </div>
-
-      {selectedPicks.length > 0 && (
-        <div className="mt-4 p-4 bg-gray-700 border border-gray-600 rounded-lg">
-          <h5 className="text-sm font-semibold text-gray-200 mb-3 flex items-center">
-            <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-            Selected Picks
-          </h5>
-          <div className="grid grid-cols-1 gap-2">
-            {selectedPicks.map(pick => (
-              <div key={pick.id} className="flex items-center justify-between text-sm bg-gray-650 p-2 rounded border border-gray-600">
-                <span className="text-gray-300 font-medium">
-                  {pick.year} {pick.round === 1 ? '1st' : '2nd'} Round
-                </span>
-                <button 
-                  onClick={() => handlePickToggle(pick)}
-                  className="text-red-400 hover:text-red-300 text-xs cursor-pointer"
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
+      {selectedPickIds.length > 0 && (
+        <div className="mt-4 p-3 bg-blue-900/30 rounded-lg border border-blue-600/30">
+          <div className="text-sm text-blue-200">
+            Selected {selectedPickIds.length} pick{selectedPickIds.length !== 1 ? 's' : ''}
           </div>
         </div>
       )}
