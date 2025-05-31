@@ -2,6 +2,12 @@
 
 A web application for calculating and comparing the value of NBA draft picks in potential trade scenarios. This tool assists decision makers in creating and evaluating trade concepts involving draft picks.
 
+## Live Application
+
+🚀 **Try the live version**: [https://nba-draft-pick-comparison.vercel.app/](https://nba-draft-pick-comparison.vercel.app/)
+
+The live version is fully configured with all necessary API keys and database connections.
+
 ## Features
 
 - **Trade Scenario Builder**: Create scenarios where teams exchange draft picks
@@ -21,6 +27,7 @@ Evaluate trades like:
 - Node.js 18+ 
 - npm, yarn, pnpm, or bun
 - OpenAI API key (for local development)
+- Supabase account and project (for local development)
 
 ### Installation
 
@@ -42,22 +49,76 @@ yarn install
 # Create .env.local file
 touch .env.local
 
-# Add your OpenAI API key
+# Add your API keys
 echo "OPENAI_API_KEY=your_openai_api_key_here" >> .env.local
+echo "NEXT_PUBLIC_SUPABASE_URL=your_supabase_url" >> .env.local
+echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key" >> .env.local
 ```
 
-4. Run the development server:
+4. Set up Supabase database:
+
+Create a table called `trade_scenarios` in your Supabase project with the following SQL:
+
+```sql
+CREATE TABLE trade_scenarios (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  team_a_name TEXT NOT NULL,
+  team_b_name TEXT NOT NULL,
+  team_a_picks JSONB NOT NULL,
+  team_b_picks JSONB NOT NULL,
+  analysis TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable Row Level Security (optional)
+ALTER TABLE trade_scenarios ENABLE ROW LEVEL SECURITY;
+
+-- Create a policy that allows all operations (adjust as needed)
+CREATE POLICY "Allow all operations" ON trade_scenarios
+FOR ALL USING (true);
+```
+
+5. Run the development server:
 ```bash
 npm run dev
 # or
 yarn dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
+6. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+## Tech Stack
+
+- **Framework**: Next.js 15.3.3
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Runtime**: React 19
+- **AI**: OpenAI API (for trade analysis)
+- **Database**: Supabase (PostgreSQL)
+- **Deployment**: Vercel
+
+## Services Used
+
+### OpenAI API
+We use OpenAI's GPT models to provide intelligent trade analysis. The AI evaluates draft pick trades by considering factors like:
+- Pick position and round value
+- Team needs and projected standings
+- Draft class strength
+- Historical trade precedents
+
+An OpenAI API token is required for local development to enable trade analysis functionality.
+
+### Supabase
+Supabase serves as our backend database for storing and retrieving saved trade scenarios. It provides:
+- PostgreSQL database with real-time subscriptions
+- Authentication (if needed in future)
+- Auto-generated APIs
+- Row Level Security
 
 ## Deployment
 
-This application is deployed on [Vercel](https://vercel.com), which provides seamless deployment for Next.js applications. The production deployment already includes the necessary OpenAI API key configuration.
+This application is deployed on [Vercel](https://vercel.com), which provides seamless deployment for Next.js applications. The production deployment already includes all necessary API keys and database configurations.
 
 Vercel automatically builds and deploys your app from your Git repository with:
 
@@ -70,17 +131,11 @@ Vercel automatically builds and deploys your app from your Git repository with:
 To deploy your own instance:
 1. Push your code to GitHub/GitLab/Bitbucket
 2. Connect your repository to Vercel
-3. Add your `OPENAI_API_KEY` to Vercel's environment variables
+3. Add your environment variables to Vercel:
+   - `OPENAI_API_KEY`
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 4. Vercel automatically detects it's a Next.js app and deploys it
-
-## Tech Stack
-
-- **Framework**: Next.js 15.3.3
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Runtime**: React 19
-- **AI**: OpenAI API
-- **Deployment**: Vercel
 
 ## Development
 
@@ -104,6 +159,38 @@ For local development, create a `.env.local` file with:
 
 ```env
 OPENAI_API_KEY=your_openai_api_key_here
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-**Note**: The deployed version on Vercel already has the API key configured, so no additional setup is needed for the live application.
+**Note**: The deployed version on Vercel already has all API keys and database connections configured, so no additional setup is needed for the live application.
+
+## Future Improvements
+
+### Real-time Draft Pick Data
+- **Current**: Using static data for draft picks
+- **Future**: Implement real-time scraping of [RealGM's Future Draft Picks](https://basketball.realgm.com/nba/draft/future_drafts/team) and transform the HTML into usable objects for up-to-date pick ownership information
+
+### Enhanced Trade Analysis
+- **Current**: Basic AI-powered trade evaluation
+- **Future**: Improve analysis accuracy by incorporating:
+  - Draft class quality and depth assessment
+  - Positional needs analysis for each team
+  - Historical performance of similar draft positions
+  - Market value trends for draft picks
+
+### Player Trade Integration
+- **Current**: Draft picks only
+- **Future**: Add player trading capabilities for more comprehensive trade analysis that includes:
+  - Player salaries and contract details
+  - Player performance metrics
+  - Age and potential considerations
+  - Salary cap implications
+
+### AI Trade Suggestions
+- **Current**: Manual trade creation only
+- **Future**: Implement AI-powered trade suggestions that:
+  - Analyze team needs and assets
+  - Suggest realistic trade scenarios
+  - Provide multiple trade options for specific goals
+  - Consider league-wide trade patterns and precedents
