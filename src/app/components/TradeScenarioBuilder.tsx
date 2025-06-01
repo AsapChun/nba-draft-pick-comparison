@@ -68,7 +68,6 @@ export default function TradeScenarioBuilder() {
 
   const canEvaluate = selectedTeams[0] && selectedTeams[1] && teamAGives.length > 0 && teamBGives.length > 0;
 
-  // Modified close handler that resets the page after closing modal
   const handleCloseModal = () => {
     setShowEvaluation(false);
     handleReset(); // This will reset all state back to initial values
@@ -81,7 +80,7 @@ export default function TradeScenarioBuilder() {
         <div className="flex items-center space-x-2">
           <span className="text-yellow-400">⚠️</span>
           <p className="text-yellow-200 text-sm">
-            <strong>Data Validity:</strong> Draft pick information is accurate as of May 31, 2024. 
+            <strong>Data Validity:</strong> Draft pick information is accurate as of May 31, 2025. 
             Trades and transactions after this date are not reflected in the current data.
           </p>
         </div>
