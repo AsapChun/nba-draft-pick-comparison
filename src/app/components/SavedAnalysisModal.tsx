@@ -61,7 +61,6 @@ export default function SavedAnalysisModal({
     return display;
   };
 
-  // New helper function to get pick type indicators and styling
   const getPickTypeInfo = (pick: OwnedDraftPick) => {
     if (pick.type === 'swap') {
       return {

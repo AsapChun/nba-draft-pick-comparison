@@ -98,6 +98,45 @@ yarn dev
 - **Database**: Supabase (PostgreSQL)
 - **Deployment**: Vercel
 
+## Implementation Choices
+
+This section explains the key architectural decisions and reasoning behind the technology choices made for this project.
+
+### Frontend Framework: Next.js 15 with React 19
+- **Choice**: Next.js with App Router and React Server Components
+- **Reasoning**: Provides excellent developer experience with built-in optimization, server-side rendering for better SEO, and seamless API route integration for backend functionality
+- **Benefits**: Fast page loads, automatic code splitting, and simplified deployment to Vercel
+
+### Language: TypeScript
+- **Choice**: TypeScript over JavaScript
+- **Reasoning**: Type safety reduces runtime errors, improves developer experience with better IDE support, and makes the codebase more maintainable as it scales
+- **Benefits**: Compile-time error detection, better refactoring capabilities, and self-documenting code
+
+### Styling: Tailwind CSS
+- **Choice**: Tailwind CSS over styled-components or CSS modules
+- **Reasoning**: Utility-first approach provides rapid prototyping, consistent design system, and smaller bundle sizes through unused CSS purging
+- **Benefits**: No CSS naming conflicts, responsive design utilities, and easy customization
+
+### AI Integration: OpenAI API
+- **Choice**: OpenAI GPT models for trade analysis
+- **Reasoning**: Advanced natural language processing capabilities allow for nuanced trade evaluation that considers multiple factors beyond simple pick values
+- **Benefits**: Intelligent analysis, natural language explanations, and ability to incorporate complex basketball knowledge
+
+### Database: Supabase (PostgreSQL)
+- **Choice**: Supabase over Firebase or traditional databases
+- **Reasoning**: Open-source alternative with PostgreSQL's robustness, real-time subscriptions, built-in authentication, and excellent TypeScript support
+- **Benefits**: SQL flexibility, JSONB support for complex data structures, and automatic API generation
+
+### Deployment: Vercel
+- **Choice**: Vercel over AWS, Netlify, or traditional hosting
+- **Reasoning**: Seamless Next.js integration, automatic deployments, global CDN, and serverless functions that scale automatically
+- **Benefits**: Zero-configuration deployment, preview deployments for PRs, and excellent performance optimization
+
+### Data Storage Strategy: JSONB for Pick Data
+- **Choice**: Store draft pick arrays as JSONB in PostgreSQL
+- **Reasoning**: Flexible schema for varying pick structures while maintaining queryability and atomic operations for trade scenarios
+- **Benefits**: Schema flexibility, JSON querying capabilities, and simplified data modeling
+
 ## Services Used
 
 ### OpenAI API
@@ -194,3 +233,26 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
   - Suggest realistic trade scenarios
   - Provide multiple trade options for specific goals
   - Consider league-wide trade patterns and precedents
+
+### Contextual Team Situation Analysis
+- **Current**: Trade evaluation without detailed team-specific context
+- **Future**: Enhance trade analysis by incorporating real-time team situations:
+  - Current roster composition and depth charts
+  - Team salary cap situation and luxury tax implications
+  - Playoff positioning and championship window timeline
+  - Recent team performance and trajectory
+  - Coaching staff preferences and system fit
+  - Front office trading patterns and philosophy
+  - Injury reports and player availability
+
+### Draft Trading Rules & Restrictions Engine
+- **Current**: No validation of trade legality or CBA compliance
+- **Future**: Implement comprehensive draft trading rules validation:
+  - NBA CBA draft pick trading restrictions (Stepien Rule, etc.)
+  - Pick protection and conversion scenarios
+  - Trade deadline restrictions for draft picks
+  - International pick trading limitations
+  - Two-round pick and cash considerations rules
+  - Future year trading windows and restrictions
+  - Conditional pick scenarios and triggers
+  - Validation warnings for potentially invalid trades

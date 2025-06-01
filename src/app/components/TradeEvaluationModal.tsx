@@ -45,7 +45,7 @@ export default function TradeEvaluationModal({
   const evaluateTrade = async () => {
     setLoading(true);
     setError(null);
-    setEvaluation(null); // Clear previous evaluation
+    setEvaluation(null);
     
     try {
       const result = await evaluateTradeWithAI(
@@ -69,7 +69,6 @@ export default function TradeEvaluationModal({
 
     setSaving(true);
     try {
-      // Hard coded analysis name
       const analysisName = `${teamAName} vs ${teamBName} Trade Analysis - ${new Date().toLocaleDateString()}`;
       
       await saveTradeAnalysis({
@@ -85,7 +84,6 @@ export default function TradeEvaluationModal({
       });
       
       setSaveSuccess(true);
-      // Don't reset saveSuccess - it should persist
     } catch (err) {
       setError('Failed to save analysis. Please try again.');
       console.error('Save error:', err);
@@ -108,7 +106,6 @@ export default function TradeEvaluationModal({
     return colorMap[color as keyof typeof colorMap]?.[type] || colorMap.yellow[type];
   };
 
-  // Enhanced helper function to format picks with intuitive visual indicators
   const formatPickForDisplay = (pick: OwnedDraftPick) => {
     let display = `${pick.year} ${pick.round === 1 ? '1st' : '2nd'} Round Pick`;
     
@@ -140,7 +137,6 @@ export default function TradeEvaluationModal({
     return display;
   };
 
-  // New helper function to get pick type indicators and styling
   const getPickTypeInfo = (pick: OwnedDraftPick) => {
     if (pick.type === 'swap') {
       return {
