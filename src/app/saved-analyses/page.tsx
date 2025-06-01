@@ -71,7 +71,7 @@ export default function SavedAnalysesPage() {
       
       <main className="max-w-6xl mx-auto px-4 py-8">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-white mb-2">Your Saved Trade Analyses</h2>
+          <h2 className="text-2xl font-bold text-white mb-2">Saved Trade Analyses</h2>
           <p className="text-gray-400">
             {analyses.length > 0 
               ? `${analyses.length} saved ${analyses.length === 1 ? 'analysis' : 'analyses'}`
