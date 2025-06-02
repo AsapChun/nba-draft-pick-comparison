@@ -297,13 +297,6 @@ Respond in valid JSON format matching this structure:
     // If it's a string, parse it first
     if (typeof responseText === 'string') {
       const evaluation: AITradeEvaluation = JSON.parse(responseText);
-      
-      // Add debugging logs to help identify the issue
-      console.log('Team A:', teamAName);
-      console.log('Team B:', teamBName);
-      console.log('AI Response favoredTeam:', evaluation.favoredTeam);
-      console.log('Overall Verdict:', evaluation.overallVerdict);
-      
       return NextResponse.json(evaluation);
     } else {
       return NextResponse.json(responseText);
