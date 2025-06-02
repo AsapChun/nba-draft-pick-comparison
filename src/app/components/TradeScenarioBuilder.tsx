@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { NBATeam, TradeScenario, TeamTradeSide, TradeAsset, OwnedDraftPick } from '../../lib/types';
+import { TradeAsset, OwnedDraftPick } from '../../lib/types';
 import { NBA_TEAMS } from '../../lib/nba-teams';
 import { getTeamOwnedPicks, analyzeTeamDraftCapital } from '../../lib/draft-picks';
 import PickSelector from './PickSelector';
@@ -56,7 +56,7 @@ export default function TradeScenarioBuilder() {
     setShowEvaluation(false);
   };
 
-  // Convert OwnedDraftPick to TradeAsset (no more legacy conversion!)
+  // Convert OwnedDraftPick to TradeAsset
   const teamAAssets: TradeAsset[] = teamAGives.map(pick => ({ 
     type: 'pick', 
     pick: pick 
